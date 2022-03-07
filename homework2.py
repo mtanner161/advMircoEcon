@@ -27,6 +27,7 @@ marginalCostT = gammaT + cObs
 marginalCostE = gammaE + cObs
 marginalCostB = gammaB + cObs
 
+# since python doesnt havea vpasolve like MATLAB - we have to use matrix's to solve this.  Set up the linear equations by hand, then hardcoded the matrix
 matrixA = np.array(
     [
         [1, 1, 1, 1, -1],
@@ -37,6 +38,7 @@ matrixA = np.array(
     ]
 )
 
+# second matrix - the answers
 matrixB = np.array(
     [
         0,
@@ -105,7 +107,9 @@ matrixF = np.array(
 
 twoFirmCatrel = np.linalg.inv(matrixE).dot(matrixF)
 
-print(twoFirmCatrel)  ##notice q increase - that is good
+print(
+    twoFirmCatrel
+)  ##notice q increase - that is good which means that our profit should increase - which matches theory!
 
 priceCartel = 13.6
 quanityOptimalCartel = twoFirmCatrel[2]
