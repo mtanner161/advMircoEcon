@@ -27,6 +27,15 @@ def variance(data):
     variance = sum(deviations) / n
     return variance
 
+# normalization functioned needed
+
+
+def normailize(dataFrame):
+    x = dataFrame.copy()
+    for i in x.columns[1:]:
+        x[i] = x[i]/x[i][0]
+    return x
+
 
 # reads in relevent data
 dataSpy = pd.read_csv(r"./advMircoEcon/advMircoFinal/dataSpy.csv")
@@ -99,24 +108,26 @@ for i in range(18, len(qDemandRaw)):
 historicalCopperPriceList = historicalMineralPrices["value copper"].tolist()
 historicalNickelPriceList = historicalMineralPrices["value nickel"].tolist()
 historicalRiskFreePriceList = dataSpy["spy"].tolist()
-del historicalRiskFreePriceList[3102:]
+del historicalRiskFreePriceList[3102:]  # chop off extra data
 
-
-print(len(historicalCopperPriceList))
-print(len(historicalNickelPriceList))
-print(len(historicalRiskFreePriceList))
-# normalize the data based on first price
-
+# calculate covariance
 covCopper = covariance(historicalCopperPriceList, historicalRiskFreePriceList)
 covNickel = covariance(historicalRiskFreePriceList, historicalNickelPriceList)
-varRiskFree = variance(historicalRiskFreePriceList)
+varRiskFree = variance(historicalRiskFreePriceList)  # variance calculation
+# calculate the beta
+betaCopper = covCopper / varRiskFree
+betaNickel = covNickel / varRiskFree
+# calculate the sums for each for the final EV comparison
+totalSumExpectedValueCopper = sum(totalExpValueCopperList)
+totalSumExpectedValueNickel = sum(totalExpValueNickelList)
+totalSumExpectedValueRiskFree = totalExpValueRiskFreeList[31]
 
+# Results
+capmCopper = totalSumExpectedValueRiskFree + \
+    (betaCopper*(totalSumExpectedValueCopper-totalSumExpectedValueRiskFree))
 
-def normailize(dataFrame):
-    x = dataFrame.copy()
-    for i in x.columns[1:]:
-        x[i] = x[i]/x[i][0]
-    return x
+capmNickel = totalSumExpectedValueRiskFree + \
+    (betaNickel*(totalSumExpectedValueNickel-totalSumExpectedValueRiskFree))
 
 
 normalizedSpy = normailize(dataSpy)
