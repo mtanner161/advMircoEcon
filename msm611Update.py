@@ -1,19 +1,34 @@
 # MSM Web Application Model Using Game Theory
 
+# import needed packages
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+#import sheets
 mineralMarketSize = pd.read_excel(
     r"./minesmineralmodel/outputs/two_degree/cleanMarketSize Pandas.xlsx")
+mineralPriceTable = pd.read_excel(
+    r"./minesmineralmodel/inputs/two_degree/mineralPrice.xlsx")
 
-mineralMarketSizeNp = mineralMarketSize.to_numpy()
+# Marginal Costs
+aluminumPrice = mineralPriceTable.iloc[0]
+copperPrice = mineralPriceTable.iloc[12]
+nickelPrice = mineralPriceTable.iloc[36]
+marginalCostAluminum = 700
+marginalCostCopper = 3548
+marginalCostNickel = 9000
 
+mineralMarketSizeNp = mineralMarketSize.to_numpy()  # turn in array for analysis
+
+# get number of years and mineral
 numberOfYears = len(mineralMarketSizeNp) - 1
 numberOfMinerals = len(mineralMarketSize.columns)
 
+# create array of zeros with correct dimensions of numberOfYears and numberofMinerals
 deltaMarketSize = np.zeros([numberOfYears, numberOfMinerals], dtype=float)
 
+# Calculate Marginal
 for i in range(0, numberOfMinerals):
     for j in range(0, numberOfYears):
         deltaMarketSize[j][i] = mineralMarketSizeNp[j+1][i] - \
@@ -21,6 +36,7 @@ for i in range(0, numberOfMinerals):
 
 cleanDeltaMarketSize = pd.DataFrame(
     deltaMarketSize, columns=mineralMarketSize.columns)
+
 
 cleanDeltaMarketSize.to_excel(r"./advMircoEcon/deltaMarketSize.xlsx")
 
