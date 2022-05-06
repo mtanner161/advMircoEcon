@@ -1,3 +1,10 @@
+# EBGN 611 Adv Mirco Final Paper
+# Capital Asset Flow Predictions
+
+# Model Developed and Code by Wilson Martin and Michael Tanner
+
+
+# Import Packages as needed
 import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
@@ -65,13 +72,13 @@ constantANickel = quanityNickel2019 / math.pow(priceNickel2019, nickelElas)
 # create a table
 expectedValueAll = pd.DataFrame(columns=["Copper", "Nickel", "Risk Free"])
 
-
 # create lists to hold expectedValues
 totalExpValueCopperList = []
 totalExpValueNickelList = []
 totalExpValueRiskFreeList = []
 totalExpValueRiskFree = 0
 
+# Master Loop to begin calculating year-by-year expected values - stores results in lists above
 for i in range(18, len(qDemandRaw)):
     # extact each line for analysis
     row = qDemandRaw.iloc[i]
@@ -98,13 +105,12 @@ for i in range(18, len(qDemandRaw)):
         totalExpValueNickel = totalRevNickel - operatingExpenses
         totalExpValueRiskFree = totalExpValueRiskFree * 1.04
 
+    # appends the list to add the lastest year
     totalExpValueCopperList.append(totalExpValueCopper)
     totalExpValueNickelList.append(totalExpValueNickel)
     totalExpValueRiskFreeList.append(totalExpValueRiskFree)
 
-
 # Calculate Beta - aka covariance since our SD of risk free asset = 1
-
 historicalCopperPriceList = historicalMineralPrices["value copper"].tolist()
 historicalNickelPriceList = historicalMineralPrices["value nickel"].tolist()
 historicalRiskFreePriceList = dataSpy["spy"].tolist()
@@ -130,6 +136,7 @@ capmNickel = totalSumExpectedValueRiskFree + \
     (betaNickel*(totalSumExpectedValueNickel-totalSumExpectedValueRiskFree))
 
 
+# Extra Junk
 normalizedSpy = normailize(dataSpy)
 
 
