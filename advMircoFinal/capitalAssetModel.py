@@ -4,6 +4,8 @@ import plotly.express as px
 import math
 import numpy as np
 
+# function to calculate covariance of two variables
+
 
 def covariance(x, y):
     meanX = sum(x)/float(len(x))
@@ -14,6 +16,8 @@ def covariance(x, y):
     denominator = len(x)-1
     cov = numerator/denominator
     return cov
+
+# calculates variance
 
 
 def variance(data):
@@ -28,6 +32,7 @@ def variance(data):
 dataSpy = pd.read_csv(r"./advMircoEcon/advMircoFinal/dataSpy.csv")
 qDemandRaw = pd.read_excel(
     r"./minesmineralmodel/outputs/two_degree/cleanDemandPandas.xlsx")
+historicalMineralPrices = pd.read_csv(r"./advMircoEcon/pricesHistorical.csv")
 
 # Known values
 quanityNickel2019 = qDemandRaw.iloc[18, 12]
@@ -48,8 +53,11 @@ nickelElas = 2.922
 constantACopper = quanityCopper2019 / math.pow(priceCopper2019, copperElas)
 constantANickel = quanityNickel2019 / math.pow(priceNickel2019, nickelElas)
 
-mineralRevenue = pd.DataFrame(columns=["Copper", "Nickel"])
+# create a table
+expectedValueAll = pd.DataFrame(columns=["Copper", "Nickel", "Risk Free"])
 
+
+# create lists to hold expectedValues
 totalExpValueCopperList = []
 totalExpValueNickelList = []
 totalExpValueRiskFreeList = []
@@ -85,14 +93,23 @@ for i in range(18, len(qDemandRaw)):
     totalExpValueNickelList.append(totalExpValueNickel)
     totalExpValueRiskFreeList.append(totalExpValueRiskFree)
 
-covCopper = covariance(totalExpValueRiskFreeList, totalExpValueCopperList)
-covNickel = covariance(totalExpValueRiskFreeList, totalExpValueNickelList)
-varRiskFree = variance(totalExpValueRiskFreeList)
+
+# Calculate Beta - aka covariance since our SD of risk free asset = 1
+
+historicalCopperPriceList = historicalMineralPrices["value copper"].tolist()
+historicalNickelPriceList = historicalMineralPrices["value nickel"].tolist()
+historicalRiskFreePriceList = dataSpy["spy"].tolist()
+del historicalRiskFreePriceList[3102:]
 
 
-dataSpy = dataSpy.drop(columns="volume")
-
+print(len(historicalCopperPriceList))
+print(len(historicalNickelPriceList))
+print(len(historicalRiskFreePriceList))
 # normalize the data based on first price
+
+covCopper = covariance(historicalCopperPriceList, historicalRiskFreePriceList)
+covNickel = covariance(historicalRiskFreePriceList, historicalNickelPriceList)
+varRiskFree = variance(historicalRiskFreePriceList)
 
 
 def normailize(dataFrame):
