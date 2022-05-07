@@ -59,9 +59,9 @@ captialInvestment = 1500000000
 copperMarketShare = 0.008
 nickelMarketShare = 0.008
 operatingExpenses = 25000000
+tBill = 2.8
 
-
-# priceElasticies
+# priceElasticies - Long Term
 copperElas = 1.048
 nickelElas = 2.922
 
@@ -75,8 +75,6 @@ expectedValueAll = pd.DataFrame(columns=["Copper", "Nickel", "Risk Free"])
 # create lists to hold expectedValues
 totalExpValueCopperList = []
 totalExpValueNickelList = []
-totalExpValueRiskFreeList = []
-totalExpValueRiskFree = 0
 
 # Master Loop to begin calculating year-by-year expected values - stores results in lists above
 for i in range(18, len(qDemandRaw)):
@@ -98,17 +96,14 @@ for i in range(18, len(qDemandRaw)):
     if i == 18:  # making to sure include captial investment in first year
         totalExpValueCopper = totalRevCopper - captialInvestment - operatingExpenses
         totalExpValueNickel = totalRevNickel - captialInvestment - operatingExpenses
-        totalExpValueRiskFree = totalExpValueRiskFree + captialInvestment
 
     else:
         totalExpValueCopper = totalRevCopper - operatingExpenses
         totalExpValueNickel = totalRevNickel - operatingExpenses
-        totalExpValueRiskFree = totalExpValueRiskFree * 1.04
 
     # appends the list to add the lastest year
     totalExpValueCopperList.append(totalExpValueCopper)
     totalExpValueNickelList.append(totalExpValueNickel)
-    totalExpValueRiskFreeList.append(totalExpValueRiskFree)
 
 # Calculate Beta - aka covariance since our SD of risk free asset = 1
 historicalCopperPriceList = historicalMineralPrices["value copper"].tolist()
@@ -116,25 +111,40 @@ historicalNickelPriceList = historicalMineralPrices["value nickel"].tolist()
 historicalRiskFreePriceList = dataSpy["spy"].tolist()
 del historicalRiskFreePriceList[3102:]  # chop off extra data
 
+# Calculatiing Percents for CAPM
+copperDiffListPercent = []
+nickelDiffListPercent = []
+marketDiffListPercent = []
+
+for x, y in zip(totalExpValueCopperList[0::], totalExpValueCopperList[1::]):
+    copperDiffListPercent.append((y-x)/x*100)
+
+for x, y in zip(totalExpValueNickelList[0::], totalExpValueNickelList[1::]):
+    nickelDiffListPercent.append((y-x)/x*100)
+
+for i in range(0, len(copperDiffListPercent)):
+    marketDiffPercent = (
+        copperDiffListPercent[i] + nickelDiffListPercent[i]) / 2
+    marketDiffListPercent.append(marketDiffPercent)
+
 # calculate covariance
-covCopper = covariance(historicalCopperPriceList, historicalRiskFreePriceList)
-covNickel = covariance(historicalRiskFreePriceList, historicalNickelPriceList)
-varRiskFree = variance(historicalRiskFreePriceList)  # variance calculation
+covCopper = covariance(copperDiffListPercent, marketDiffListPercent)
+covNickel = covariance(nickelDiffListPercent, marketDiffListPercent)
+varMarket = variance(marketDiffListPercent)  # variance calculation
+
+
 # calculate the beta
-betaCopper = covCopper / varRiskFree
-betaNickel = covNickel / varRiskFree
-# calculate the sums for each for the final EV comparison
-totalSumExpectedValueCopper = sum(totalExpValueCopperList)
-totalSumExpectedValueNickel = sum(totalExpValueNickelList)
-totalSumExpectedValueRiskFree = totalExpValueRiskFreeList[31]
+betaCopper = covCopper / varMarket
+betaNickel = covNickel / varMarket
 
-# Results
-capmCopper = totalSumExpectedValueRiskFree + \
-    (betaCopper*(totalSumExpectedValueCopper-totalSumExpectedValueRiskFree))
+capmCopperList = []
+capmNickelList = []
 
-capmNickel = totalSumExpectedValueRiskFree + \
-    (betaNickel*(totalSumExpectedValueNickel-totalSumExpectedValueRiskFree))
-
+for i in range(0, len(copperDiffListPercent) - 1):
+    capmCopper = tBill + (betaCopper * (marketDiffListPercent[i] - tBill))
+    capmNickel = tBill + (betaNickel * (marketDiffListPercent[i] - tBill))
+    capmCopperList.append(capmCopper)
+    capmNickelList.append(capmNickel)
 
 # Extra Junk
 normalizedSpy = normailize(dataSpy)
