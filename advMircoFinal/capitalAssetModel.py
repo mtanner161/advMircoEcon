@@ -7,7 +7,6 @@
 # Import Packages as needed
 import matplotlib.pyplot as plt
 import pandas as pd
-import plotly.express as px
 import math
 import numpy as np
 
@@ -45,7 +44,6 @@ def normailize(dataFrame):
 
 
 # reads in relevent data
-dataSpy = pd.read_csv(r"./advMircoEcon/advMircoFinal/dataSpy.csv")
 qDemandRaw = pd.read_excel(
     r"./minesmineralmodel/outputs/two_degree/cleanDemandPandas.xlsx")
 historicalMineralPrices = pd.read_csv(r"./advMircoEcon/pricesHistorical.csv")
@@ -108,8 +106,6 @@ for i in range(18, len(qDemandRaw)):
 # Calculate Beta - aka covariance since our SD of risk free asset = 1
 historicalCopperPriceList = historicalMineralPrices["value copper"].tolist()
 historicalNickelPriceList = historicalMineralPrices["value nickel"].tolist()
-historicalRiskFreePriceList = dataSpy["spy"].tolist()
-del historicalRiskFreePriceList[3102:]  # chop off extra data
 
 # Calculatiing Percents for CAPM
 copperDiffListPercent = []
@@ -137,6 +133,7 @@ varMarket = variance(marketDiffListPercent)  # variance calculation
 betaCopper = covCopper / varMarket
 betaNickel = covNickel / varMarket
 
+# get empty lists
 capmCopperList = []
 capmNickelList = []
 
@@ -146,28 +143,19 @@ for i in range(0, len(copperDiffListPercent) - 1):
     capmCopperList.append(capmCopper)
     capmNickelList.append(capmNickel)
 
-# Extra Junk
-normalizedSpy = normailize(dataSpy)
 
+# calculate average
+returnCopperSumMean = sum(capmCopperList) / len(capmCopperList)
+returnNickelSumMean = sum(capmNickelList) / len(capmNickelList)
 
-def interactive_plot(df, title):
-    fig = px.line(title=title)
-    for i in df.columns[1:]:
-        fig.add_scatter(x=df['timestamp'], y=df[i], name=i)
-    fig.show()
+# get a list year - not needed in the model
+yearList = [2020]
+for i in range(1, 30):
+    yearList.append(yearList[i-1] + 1)
 
+dict = {"year": yearList, "copper return": capmCopperList,
+        "nickel return": capmNickelList}
 
-interactive_plot(normalizedSpy, "Boobs")
+df = pd.DataFrame(dict)
 
-ySpy = normalizedSpy["open"]
-xSpy = normalizedSpy["timestamp"]
-yXme = normalizedSpy["open"]
-xXme = normalizedSpy["timestamp"]
-
-fig, ax = plt.subplot()
-
-ax.plot(xSpy, ySpy)
-
-plt.show()
-
-print("yay")
+df.to_csv(r"./advMircoEcon/advMircoFinal/dataCAPM.csv")
