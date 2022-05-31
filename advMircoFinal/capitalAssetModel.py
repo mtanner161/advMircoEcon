@@ -1,4 +1,3 @@
-# EBGN 611 Adv Mirco Final Paper Model
 # Capital Asset Flow Predictions
 
 # Model Developed and Coded by Wilson Martin and Michael Tanner
